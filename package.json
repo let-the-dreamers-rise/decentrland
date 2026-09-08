@@ -1,0 +1,17 @@
+{
+  "name": "nightwire",
+  "version": "0.1.0",
+  "description": "Nightwire - a co-op arena game for Decentraland. Creator Success V0 test scene.",
+  "scripts": {
+    "start": "sdk-commands start",
+    "build": "sdk-commands build",
+    "deploy": "sdk-commands deploy",
+    "upgrade-sdk": "npm install --save-dev @dcl/sdk@latest"
+  },
+  "devDependencies": {
+    "@dcl/js-runtime": "latest",
+    "@dcl/sdk": "latest",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {}
+}

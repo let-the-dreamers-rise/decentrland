@@ -1,0 +1,29 @@
+{
+  "ecs7": true,
+  "runtimeVersion": "7",
+  "display": {
+    "title": "Nightwire",
+    "description": "Charge the Core before the round runs out. Some nodes only light up when two players stand on them at once."
+  },
+  "owner": "",
+  "contact": {
+    "name": "",
+    "email": ""
+  },
+  "main": "bin/index.js",
+  "tags": ["game", "multiplayer", "social", "arena"],
+  "scene": {
+    "parcels": ["0,0", "0,1", "1,0", "1,1"],
+    "base": "0,0"
+  },
+  "spawnPoints": [
+    {
+      "name": "entrance",
+      "default": true,
+      "position": { "x": [14, 18], "y": [0.5, 0.5], "z": [2, 4] },
+      "cameraTarget": { "x": 16, "y": 1.5, "z": 16 }
+    }
+  ],
+  "requiredPermissions": [],
+  "featureToggles": {}
+}

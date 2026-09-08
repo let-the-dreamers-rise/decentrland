@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "lib": ["es2020"],
+    "target": "es2020",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "jsxFactory": "ReactEcs.createElement",
+    "jsxFragmentFactory": "ReactEcs.Fragment",
+    "strict": true,
+    "noImplicitOverride": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["@dcl/js-runtime"],
+    "outDir": "bin"
+  },
+  "include": ["src"]
+}
