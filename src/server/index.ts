@@ -71,9 +71,12 @@ export function initServer(): void {
  * ---------------------------------------------------------------- */
 
 async function loadState(): Promise<void> {
-  for (let slot = 0; slot < C.MAX_GHOSTS; slot++) {
-    const stored = await Storage.get<StoredGhost>(`ghost:${slot}`)
-    if (stored && stored.path) ghosts.push(hydrate(stored))
+  // One prefixed read rather than a get() per slot: on a cold scene every
+  // missing slot would otherwise be its own request and its own 404.
+  const stored = await Storage.getValues({ prefix: 'ghost:', limit: C.MAX_GHOSTS })
+  for (const entry of stored.data) {
+    const ghost = entry.value as StoredGhost | null
+    if (ghost && ghost.path) ghosts.push(hydrate(ghost))
   }
   ghosts.sort((a, b) => b.score - a.score)
 

@@ -10,7 +10,7 @@
     "server-logs": "sdk-commands sdk-server-logs"
   },
   "devDependencies": {
-    "@dcl/js-runtime": "^7.27.1-33533530571.commit-451d001",
+    "@dcl/js-runtime": "7.27.1-33533530571.commit-451d001",
     "@dcl/sdk": "^7.27.1-33533530571.commit-451d001",
     "typescript": "^5.4.5"
   }
