@@ -5,8 +5,17 @@ import { dayIndex, trackName } from '../shared/daily'
 import { room } from '../shared/messages'
 import { accumulate, buildTrack, project, Track } from '../shared/track'
 import { decodePath, encodePath, Sample } from '../shared/codec'
+import { fetchLook, packLook } from '../shared/look'
 
-type StoredGhost = { address: string; name: string; score: number; path: string; day: number }
+type StoredGhost = {
+  address: string
+  name: string
+  score: number
+  path: string
+  day: number
+  /** Packed wearables of the player who set the run. */
+  look: string
+}
 
 type Ghost = StoredGhost & {
   /** Cumulative metres run at each sample index, precomputed for overtake checks. */
@@ -153,7 +162,8 @@ function sendWelcome(address: string): void {
         address: ghost.address,
         name: ghost.name,
         score: ghost.score,
-        path: ghost.path
+        path: ghost.path,
+        look: ghost.look
       },
       { to: [address] }
     )
@@ -323,12 +333,18 @@ async function finishRun(runner: Runner): Promise<void> {
 async function recordGhost(runner: Runner, score: number): Promise<void> {
   if (runner.samples.length < C.SAMPLE_HZ * 5) return // runs under 5s are not worth replaying
 
+  // Reuse the look we already have for this player rather than re-fetching
+  // their profile on every personal best.
+  const known = ghosts.find((ghost) => ghost.address === runner.address)
+  const look = known?.look ?? packLook(await fetchLook(runner.address))
+
   const stored: StoredGhost = {
     address: runner.address,
     name: runner.name,
     score,
     path: encodePath(runner.samples),
-    day
+    day,
+    look
   }
 
   const existing = ghosts.findIndex((ghost) => ghost.address === runner.address)
@@ -357,7 +373,8 @@ async function recordGhost(runner: Runner, score: number): Promise<void> {
     address: stored.address,
     name: stored.name,
     score: stored.score,
-    path: stored.path
+    path: stored.path,
+    look: stored.look
   })
 }
 

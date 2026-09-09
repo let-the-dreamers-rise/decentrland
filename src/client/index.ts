@@ -49,7 +49,7 @@ function listen(): void {
   })
 
   room.onMessage('ghost', (data) => {
-    upsertGhost(data.address, data.name, data.score, data.path)
+    upsertGhost(data.address, data.name, data.score, data.path, data.look)
     view.ghosts = ghostCount()
   })
 

@@ -18,7 +18,9 @@ export const Messages = {
     address: Schemas.String,
     name: Schemas.String,
     score: Schemas.Int,
-    path: Schemas.String
+    path: Schemas.String,
+    /** Packed avatar look, see shared/look.ts */
+    look: Schemas.String
   }),
   runState: Schemas.Map({
     address: Schemas.String,

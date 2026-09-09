@@ -1,6 +1,7 @@
 import { buildTrack, project, accumulate, positionAt } from '../src/shared/track'
 import { encodePath, decodePath } from '../src/shared/codec'
 import * as C from '../src/shared/config'
+import { packLook, unpackLook, DEFAULT_LOOK } from '../src/shared/look'
 
 let fails = 0
 const check = (name: string, ok: boolean, extra = '') => {
@@ -104,6 +105,21 @@ for (let i = 0; i < C.MAX_SAMPLES; i++) {
   else if (a && me < gm - 1.5) a = false
 }
 check('pacing a ghost within the deadband does not flap', flaps === 0, `flaps=${flaps}`)
+
+// --- avatar look packing survives the round trip
+const look = {
+  bodyShape: 'urn:decentraland:off-chain:base-avatars:BaseFemale',
+  wearables: ['urn:decentraland:off-chain:base-avatars:casual_hair_01', 'urn:decentraland:matic:collections-v2:0xabc:3'],
+  skin: { r: 0.51, g: 0.42, b: 0.33 },
+  hair: { r: 0.1, g: 0.2, b: 0.3 },
+  eyes: { r: 0.4, g: 0.6, b: 0.8 }
+}
+const round = unpackLook(packLook(look))
+check('look round-trips body shape and wearables', round.bodyShape === look.bodyShape && round.wearables.join() === look.wearables.join())
+check('look round-trips colours', Math.abs(round.skin.r - look.skin.r) < 0.002 && Math.abs(round.eyes.b - look.eyes.b) < 0.002)
+check('a malformed look falls back to the default avatar', unpackLook('garbage').bodyShape === DEFAULT_LOOK.bodyShape)
+check('an empty look falls back to the default avatar', unpackLook('').bodyShape === DEFAULT_LOOK.bodyShape)
+check('a packed look plus a ghost path stays under the message cap', packLook(look).length + encoded.length < 13000, `${packLook(look).length + encoded.length} bytes`)
 
 // --- daily variation
 const t2 = buildTrack(20346)

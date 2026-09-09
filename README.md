@@ -62,7 +62,8 @@ Publishing the scene publishes the server with it — there is nothing else to h
 | `src/shared/config.ts` | Every tunable — run length, Heat, scoring, colours. |
 | `src/server/index.ts` | Referee: verified positions, scoring, overtakes, Storage, leaderboard. |
 | `src/client/index.ts` | Run loop, local feedback mirror, snap-back restart. |
-| `src/client/ghosts.ts` | Ghost entities, replay, ignition on a pass. |
+| `src/client/ghosts.ts` | Ghost avatars, replay, ignition on a pass. |
+| `src/shared/look.ts` | Reads each runner's profile so their ghost wears their wearables. |
 | `src/client/track.ts` | Track, obstacles and start gate geometry. |
 | `src/client/hud.tsx` | HUD, sized for a phone. |
 | `design/gdd.md` | The Game Design Document. |
@@ -81,6 +82,10 @@ when the next server tick lands. The number on the HUD is always the server's.
 **The track is derived, not transmitted.** Both sides call `buildTrack(dayIndex())` and
 get the same loop from the same integer, so track data never crosses the wire.
 
+**Ghosts are real people.** Each one renders through `AvatarShape` using the runner's
+live Decentraland profile, so it wears their actual wearables. You can recognise a friend
+on the track by their outfit.
+
 **A ghost is a 900-byte string.** 5 Hz sampling, positions quantised to decimetres and
 written as fixed-width base-36. A full 16-ghost roster is 14 KB; a single ghost message
 is far inside the ~13 KB transport cap.
@@ -88,7 +93,7 @@ is far inside the ~13 KB transport cap.
 ## Verified so far
 
 `npm run build` passes bundling and typecheck. The geometry and scoring logic is covered
-by a simulation in `design/logic-sim.ts` — 16 checks, all passing. Run it with:
+by a simulation in `design/logic-sim.ts` — 21 checks, all passing. Run it with:
 
 ```bash
 npx esbuild design/logic-sim.ts --bundle --platform=node --outfile=/tmp/sim.js && node /tmp/sim.js
@@ -104,6 +109,8 @@ It covers:
 - a 6 m/s run passes a 4 m/s ghost exactly once and never passes an 8 m/s one
 - pacing a ghost inside the 1.5 m deadband doesn't flap the overtake flag
 - the track reshapes day to day
+- avatar looks round-trip, and malformed ones fall back to a default avatar
+- a ghost plus its look is ~1.1 KB against the ~13 KB message cap
 
 **Not verified:** anything about how it feels. The scene has not been run in-world, and
 whether Decentraland's floaty avatar movement is enjoyable to race is the biggest open
