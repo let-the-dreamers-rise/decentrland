@@ -42,14 +42,26 @@ the ghost roster while testing.
 
 ## Deploying to a Decentraland World
 
+Worlds are addressed by a Decentraland NAME, so the deploying wallet needs to own one
+(100 MANA to mint, or buy an existing one on the Marketplace).
+
+1. Add your World name to `scene.json`, at the root level:
+
+```json
+"worldConfiguration": { "name": "yourname.dcl.eth" }
+```
+
+2. Fill in `owner` and `contact` in `scene.json`.
+3. Deploy:
+
 ```bash
 npm run deploy -- --target-content https://worlds-content-server.decentraland.org
 ```
 
-Fill in `owner` and `contact` in `scene.json` and set your World name first (see
-[publishing options](https://docs.decentraland.org/creator/scenes-sdk7/publishing/publishing-options)).
-Deploying signs with your wallet, so it has to be run by the account that owns the NAME.
-Publishing the scene publishes the server with it — there is nothing else to host.
+This opens a browser and asks the wallet that owns the NAME to sign, so it has to be run
+by you on a machine with your wallet — it cannot be done from a CI or agent session.
+Publishing the scene publishes the Multiplayer Server with it; there is nothing else to
+host. See [publishing options](https://docs.decentraland.org/creator/scenes-sdk7/publishing/publishing-options).
 
 ## Layout
 
