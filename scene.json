@@ -2,8 +2,8 @@
   "ecs7": true,
   "runtimeVersion": "7",
   "display": {
-    "title": "Nightwire",
-    "description": "Charge the Core before the round runs out. Some nodes only light up when two players stand on them at once."
+    "title": "Ghost Relay",
+    "description": "A 30-second sprint against the recorded runs of everyone who came before. The track is never empty."
   },
   "owner": "",
   "contact": {
@@ -11,19 +11,59 @@
     "email": ""
   },
   "main": "bin/index.js",
-  "tags": ["game", "multiplayer", "social", "arena"],
+  "tags": [
+    "game",
+    "racing",
+    "social",
+    "mobile"
+  ],
   "scene": {
-    "parcels": ["0,0", "0,1", "1,0", "1,1"],
+    "parcels": [
+      "0,0",
+      "0,1",
+      "0,2",
+      "0,3",
+      "1,0",
+      "1,1",
+      "1,2",
+      "1,3",
+      "2,0",
+      "2,1",
+      "2,2",
+      "2,3",
+      "3,0",
+      "3,1",
+      "3,2",
+      "3,3"
+    ],
     "base": "0,0"
   },
   "spawnPoints": [
     {
-      "name": "entrance",
+      "name": "line",
       "default": true,
-      "position": { "x": [14, 18], "y": [0.5, 0.5], "z": [2, 4] },
-      "cameraTarget": { "x": 16, "y": 1.5, "z": 16 }
+      "position": {
+        "x": [
+          30,
+          34
+        ],
+        "y": [
+          0.5,
+          0.5
+        ],
+        "z": [
+          52,
+          55
+        ]
+      },
+      "cameraTarget": {
+        "x": 32,
+        "y": 1,
+        "z": 32
+      }
     }
   ],
   "requiredPermissions": [],
-  "featureToggles": {}
+  "featureToggles": {},
+  "authoritativeMultiplayer": true
 }

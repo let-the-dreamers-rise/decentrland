@@ -1,115 +1,136 @@
-# Nightwire
+# Ghost Relay
 
-A co-op arena game for Decentraland. Nodes light up around a small arena, you charge them
-by standing on them, and the Core fills. Every third wave puts up a **linked pair** — two
-nodes that only charge while somebody is standing on both at once — worth three times a
-solo node.
+A 30-second sprint against the recorded runs of everyone who came before.
 
-This repository is the project for a **Decentraland Creator Success V0 application**:
+Decentraland has about 28 concurrent players across its 100 busiest places. A game that
+needs two people online at once is a game nobody can play. So this one records every run
+and replays it: the track is always full, even when the world is empty. Passing a ghost
+is worth more than running clean, and your best run becomes a ghost other people race.
+
+This repository is a **Decentraland Creator Success V0 application**:
 
 - the Game Design Document at [`design/gdd.md`](design/gdd.md)
-- a playable test scene in [`src/`](src) built on SDK7
+- a playable test scene in [`src/`](src), running on the hosted Multiplayer Server
 
 ---
 
-## Play it in 30 seconds
+## Play it
 
-1. Spawn at the south edge of the arena and walk in.
-2. **Amber pad** — stand on it for ~1.4 s. A column grows; when it tops out the Core gets
-   taller and you score.
-3. Charge again within 5 seconds to step the chain multiplier up (max ×5).
-4. **Magenta pair with a beam between them** — these do not move unless a player is
-   standing on *each* end. Grab somebody. They are worth 18v instead of 6v.
-5. A round is 90 seconds. Fill the Core to 100v to end it early. Then 12 seconds and the
-   next round starts on the same daily grid.
+1. Walk onto the green pad. The run starts immediately — no menu, no lobby.
+2. Run the loop. Metres tick up as long as you stay near the racing line.
+3. **Pass a ghost** — it ignites orange, you get +50 m and a point of Heat.
+4. Heat multiplies everything you earn and drains in about three seconds, so the only
+   way to hold it is to keep passing.
+5. After 30 seconds you're snapped back to the line. Go again.
 
-Node positions rotate daily (the HUD names the day's grid), so the routes change even
-though the arena does not.
+The track reshapes every day, and your best run joins the ghost field.
 
 ## Running it locally
 
 ```bash
 npm install
-npm start          # opens the scene in the local preview
+npm start     # preview, with a local Multiplayer Server started automatically
+npm run build # bundle + typecheck
 ```
 
-Build and typecheck only:
+The scene uses the `auth-server` SDK branch, which is what provides `isServer()`,
+`registerMessages()` and `Storage`. `npm install` picks that up from `package.json`.
 
-```bash
-npm run build
-```
+Local server storage is written to
+`node_modules/@dcl/sdk-commands/.runtime-data/server-storage.json` — delete it to reset
+the ghost roster while testing.
 
 ## Deploying to a Decentraland World
-
-The scene is 2×2 parcels and deploys as-is:
 
 ```bash
 npm run deploy -- --target-content https://worlds-content-server.decentraland.org
 ```
 
-Before deploying, fill in `owner` and `contact` in `scene.json`, and set the World name
-under `worldConfiguration` (see the
-[publishing options docs](https://docs.decentraland.org/creator/scenes-sdk7/publishing/publishing-options)).
-Deploying signs with your wallet, so it has to be run by the account that owns the NAME —
-it is not something this repository can do for you.
+Fill in `owner` and `contact` in `scene.json` and set your World name first (see
+[publishing options](https://docs.decentraland.org/creator/scenes-sdk7/publishing/publishing-options)).
+Deploying signs with your wallet, so it has to be run by the account that owns the NAME.
+Publishing the scene publishes the server with it — there is nothing else to host.
 
-## What is in here
+## Layout
 
 | Path | What it does |
 |---|---|
-| `src/index.ts` | Entry point. Resolves the player id, builds the game, mounts the HUD. |
-| `src/game.ts` | Round state machine, wave selection, charging, scoring, host election. |
-| `src/nodes.ts` | Node and Core entities, and the per-frame rendering of their state. |
-| `src/arena.ts` | Floor, boundary, guide rings, the day's grid sign. Static geometry. |
-| `src/players.ts` | Local and remote avatar positions, used for node occupancy. |
-| `src/daily.ts` | The seeded rng, the day index, and the shuffle every client agrees on. |
-| `src/net.ts` | `MessageBus` channels and message shapes. |
-| `src/config.ts` | Every tunable in one file — timings, values, colours, palette. |
+| `src/index.ts` | Branches on `isServer()` — the only file that knows about both sides. |
+| `src/shared/track.ts` | Daily loop generation, and projecting a position onto it. |
+| `src/shared/codec.ts` | Ghost paths ⇄ 900-byte base-36 strings. |
+| `src/shared/messages.ts` | Typed client/server message schemas. |
+| `src/shared/config.ts` | Every tunable — run length, Heat, scoring, colours. |
+| `src/server/index.ts` | Referee: verified positions, scoring, overtakes, Storage, leaderboard. |
+| `src/client/index.ts` | Run loop, local feedback mirror, snap-back restart. |
+| `src/client/ghosts.ts` | Ghost entities, replay, ignition on a pass. |
+| `src/client/track.ts` | Track, obstacles and start gate geometry. |
+| `src/client/hud.tsx` | HUD, sized for a phone. |
 | `design/gdd.md` | The Game Design Document. |
 
-## How multiplayer works
+## How it works
 
-There is no server. Two ideas keep clients agreeing:
+**The server is the referee.** It reads verified player positions
+(`PlayerIdentityData` + `Transform`) every frame — clients never report their own
+position for scoring. It decides progress, overtakes and score, and it is what writes to
+`Storage`.
 
-**Layout is derived, not synced.** Which nodes light up on a given wave is
-`shuffle(hash(UTC day, round, step))`. Every client computes the same wave from the same
-three integers, so no layout message is ever sent.
+**The client mirrors the maths for feedback only.** It runs the same track projection
+locally so a ghost ignites on the exact frame you pass it, instead of up to 200 ms later
+when the next server tick lands. The number on the HUD is always the server's.
 
-**Only outcomes travel.** When a node finishes charging, exactly one client announces it —
-the occupant with the lowest wallet address on that node, and on a linked pair the lower
-of the two node ids decides — so a two-player link still produces a single message. The
-lowest address in the scene acts as host: it retires waves that time out and broadcasts a
-1 Hz heartbeat that late joiners snap to.
+**The track is derived, not transmitted.** Both sides call `buildTrack(dayIndex())` and
+get the same loop from the same integer, so track data never crosses the wire.
 
-This is deliberately lightweight and it has limits: a client that joins mid-round trusts
-the heartbeat, and the scoring is client-authoritative. Moving round state to a server is
-part of the V0 scope in the GDD, alongside the persistence that streaks and leaderboards
-need.
+**A ghost is a 900-byte string.** 5 Hz sampling, positions quantised to decimetres and
+written as fixed-width base-36. A full 16-ghost roster is 14 KB; a single ghost message
+is far inside the ~13 KB transport cap.
 
-## Known limitations of the test scene
+## Verified so far
 
-These are scoped deliberately — the test scene is meant to prove the core mechanic, not
-to be the vertical slice:
+`npm run build` passes bundling and typecheck. The geometry and scoring logic is covered
+by a simulation in `design/logic-sim.ts` — 16 checks, all passing. Run it with:
 
-- **No persistence.** Streaks, personal bests and leaderboards are session-only. This is
-  the first item of V0 scope.
-- **No audio.** The chain multiplier especially wants a sound.
-- **No onboarding wave.** The two-player rule is currently learned by walking into it.
-- **Waves are shuffled, not authored.** V0 replaces the shuffle with hand-built wave
-  archetypes.
-- **All geometry is engine primitives.** That is a mobile-performance choice for the test
-  scene, and also means there is no custom art to review yet.
+```bash
+npx esbuild design/logic-sim.ts --bundle --platform=node --outfile=/tmp/sim.js && node /tmp/sim.js
+```
+
+It covers:
+
+- points on the racing line project with zero offset
+- one lap accumulates to the loop length, and three laps don't spike at the start-line wrap
+- running the loop backwards scores nothing
+- the middle of the arena is off-line, so cutting the corner doesn't count
+- the codec round-trips within 5 cm, and a ghost is 900 bytes
+- a 6 m/s run passes a 4 m/s ghost exactly once and never passes an 8 m/s one
+- pacing a ghost inside the 1.5 m deadband doesn't flap the overtake flag
+- the track reshapes day to day
+
+**Not verified:** anything about how it feels. The scene has not been run in-world, and
+whether Decentraland's floaty avatar movement is enjoyable to race is the biggest open
+question in the design.
+
+## Known gaps
+
+Deliberate — the test scene proves the mechanic, it is not the vertical slice:
+
+- **No audio.** Heat is a bar that should be a sound.
+- **No particles or camera work.** `ParticleSystem` and `VirtualCamera` are both
+  available and unused.
+- **Ghost roster is just the top 16**, not mixed by difficulty, so there may be nobody
+  passable at your level.
+- **No onboarding.** A first-timer has to infer the loop from a sign.
+- **Cold start is real.** The first player races an empty track.
 
 ## Creator Success checklist
 
 | Requirement | Status |
 |---|---|
-| GDD at `/design/gdd.md` | ✅ in this repo |
-| Test scene code in the repo | ✅ `src/`, builds clean with `npm run build` |
-| At least one interaction from the core mechanic | ✅ proximity charging, chain multiplier, linked pairs |
-| README linking the deployed scene | ⬜ add your World URL below once deployed |
-| Scene live in a Decentraland World | ⬜ run `npm run deploy` from a wallet that owns the NAME |
-| Repo shared with the Foundation reviewers | ⬜ add `pravusjif`, `popuz`, `baybackner`, `nicoE` |
-| V0 application form submitted | ⬜ submit yourself — it needs your identity and declarations |
+| GDD at `/design/gdd.md` | ✅ |
+| Test scene code in the repo | ✅ builds clean |
+| At least one interaction from the core mechanic | ✅ full loop: run, record, replay, overtake, score |
+| README linking the deployed scene | ⬜ add your World URL below |
+| Scene live in a Decentraland World | ⬜ `npm run deploy` from the NAME owner's wallet |
+| Repo shared with Foundation reviewers | ⬜ add `pravusjif`, `popuz`, `baybackner`, `nicoE` |
+| V0 application form submitted | ⬜ yours to submit — it carries your declarations |
 
 **Deployed test scene:** _(add the World URL here after deploying)_
