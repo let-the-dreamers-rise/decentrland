@@ -56,10 +56,17 @@ pick their World, and add your address under permissions.
 Once they have, deploying is the same command as below — the signature just proves you
 are on their allow-list instead of proving ownership.
 
-### Paid: own the NAME
+### Own the name yourself
 
-Minting a Decentraland NAME costs 100 MANA and gives you a World immediately. Buying an
-ENS domain also works. Budget for gas on top of the token cost.
+Any of these gives you a World under a name you control:
+
+- **A Decentraland NAME** — 100 MANA, plus gas.
+- **Any ENS domain** — `.eth` registration, plus gas. 120 of the ~1,630 live Worlds run
+  on plain ENS names rather than Decentraland NAMEs.
+- **An ENS subdomain issued to you** — verified working in production: nested names like
+  `hunter.crossverse.eth` and `atom.daohq.dappcraft.eth` are live Worlds today, so a
+  subname under somebody's parent domain resolves fine. The subname is yours; only the
+  parent belongs to someone else.
 
 ### Either way
 
