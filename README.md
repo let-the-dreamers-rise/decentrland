@@ -42,13 +42,31 @@ the ghost roster while testing.
 
 ## Deploying to a Decentraland World
 
-Worlds are addressed by a Decentraland NAME, so the deploying wallet needs to own one
-(100 MANA to mint, or buy an existing one on the Marketplace).
+Worlds are addressed by a Decentraland NAME or an ENS domain. There are two ways to get
+a scene live, and **one of them is free**.
 
-1. Add your World name to `scene.json`, at the root level:
+### Free: deploy under someone else's World (ACL)
+
+A World owner can add your wallet to their World's access control list, and you can then
+publish to it without owning anything yourself. The ACL lives on the World Content Server
+rather than the blockchain, so granting it costs the owner nothing and takes a minute:
+they open [decentraland.org/builder/worlds](https://decentraland.org/builder/worlds),
+pick their World, and add your address under permissions.
+
+Once they have, deploying is the same command as below — the signature just proves you
+are on their allow-list instead of proving ownership.
+
+### Paid: own the NAME
+
+Minting a Decentraland NAME costs 100 MANA and gives you a World immediately. Buying an
+ENS domain also works. Budget for gas on top of the token cost.
+
+### Either way
+
+1. Add the World name to `scene.json`, at the root level:
 
 ```json
-"worldConfiguration": { "name": "yourname.dcl.eth" }
+"worldConfiguration": { "name": "thatname.dcl.eth" }
 ```
 
 2. Fill in `owner` and `contact` in `scene.json`.
@@ -58,10 +76,10 @@ Worlds are addressed by a Decentraland NAME, so the deploying wallet needs to ow
 npm run deploy -- --target-content https://worlds-content-server.decentraland.org
 ```
 
-This opens a browser and asks the wallet that owns the NAME to sign, so it has to be run
-by you on a machine with your wallet — it cannot be done from a CI or agent session.
-Publishing the scene publishes the Multiplayer Server with it; there is nothing else to
-host. See [publishing options](https://docs.decentraland.org/creator/scenes-sdk7/publishing/publishing-options).
+This opens a browser and signs with your wallet, so it has to be run by you on a machine
+with that wallet — it cannot be done from a CI or agent session. Publishing the scene
+publishes the Multiplayer Server with it; there is nothing else to host. See
+[publishing options](https://docs.decentraland.org/creator/scenes-sdk7/publishing/publishing-options).
 
 ## Layout
 
